@@ -74,7 +74,7 @@ class CallWebhookJobTest extends TestCase
 
         $baseRequest['options']['headers'] = array_merge(
             $baseRequest['options']['headers'],
-            $extraHeaders,
+            $extraHeaders
         );
 
         $this->artisan('queue:work --once');
