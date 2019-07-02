@@ -91,7 +91,9 @@ class CallWebhookJob implements ShouldQueue
 
             $this->dispatchEvent(WebhookCallFailedEvent::class);
 
-            $this->release($waitInSeconds);
+            if (!in_array($this->response->getStatusCode(), config('webhook-server.code_status_to_break'))) {
+                $this->release($waitInSeconds);
+            }
         }
 
         if ($this->attempts() >= $this->tries || in_array($this->response->getStatusCode(), config('webhook-server.code_status_to_break'))) {

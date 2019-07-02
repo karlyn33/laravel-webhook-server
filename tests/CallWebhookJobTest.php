@@ -3,6 +3,7 @@
 namespace Spatie\WebhookServer\Tests;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Event;
 use Spatie\TestTime\TestTime;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
@@ -125,6 +126,24 @@ class CallWebhookJobTest extends TestCase
         Event::assertDispatched(WebhookCallFailedEvent::class, 3);
         Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
         $this->testClient->assertRequestCount(3);
+    }
+
+    /** @test */
+    public function it_will_stop_retry_queue_when_status_code_break_meet()
+    {
+        $this->testClient->setUseResponseCode(410);
+
+        $this->baseWebhook()->dispatch();
+
+        $this->artisan('queue:work --once');
+        Event::assertDispatched(WebhookCallFailedEvent::class, 1);
+        Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
+        $this->testClient->assertRequestCount(1);
+
+        $this->assertDatabaseMissing('jobs', ['queue' => 'default']);
+        Event::assertDispatched(WebhookCallFailedEvent::class, 1);
+        Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
+        $this->testClient->assertRequestCount(1);
     }
 
     protected function baseWebhook(): WebhookCall
