@@ -43,6 +43,13 @@ return [
     'tries' => 3,
 
     /*
+     * Webhook will not retry the job when meet one of those Code Status
+     */
+    'code_status_to_break' => [
+        410,
+    ],
+
+    /*
      * This class determines how many seconds there should be between attempts.
      */
     'backoff_strategy' => \Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy::class,
