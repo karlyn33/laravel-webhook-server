@@ -4,6 +4,7 @@ namespace Spatie\WebhookServer;
 
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -77,6 +78,12 @@ class CallWebhookJob implements ShouldQueue
             $this->dispatchEvent(WebhookCallSucceededEvent::class);
 
         } catch (Exception $exception) {
+
+            if (is_a($exception, RequestException::class)) {
+                /** @var RequestException $exception */
+                $this->response = $exception->getResponse();
+            }
+
             /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategry */
             $backoffStrategy = app($this->backoffStrategyClass);
 
